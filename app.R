@@ -13,7 +13,7 @@ library(dplyr)
 #The UI code
 #Controls what's displayed
 ui <- fluidPage(
-  theme = shinytheme("paper"),
+  theme = shinytheme("darkly"),
   #shinythemes::themeSelector(), 
   
   #Suppress messages
@@ -22,7 +22,8 @@ ui <- fluidPage(
   ),
 
   # Formatted title
-  column(9,titlePanel(HTML(paste(tags$span(style="font-size: 28px", "Guess The Stock!"))),windowTitle = "Guess The Stock"),align="center")
+  column(9,align="center",titlePanel( HTML(paste(tags$span(style="font-size: 24px; font-style: bold; vertical-align: middle", "Guess the stock! Which is ")
+  ,tags$span(style="color:#009E73; font-size: 24px;font-style: bold; vertical-align: middle", "green?"), sep = ""))))
   
   # Vertical layout for simplicity 
   ,verticalLayout(
@@ -30,9 +31,9 @@ ui <- fluidPage(
     fluidRow(
 
       #Current streak, message, and personal best text
-      column(3,align="center",textOutput("text1", container = span),div(style = "height:120%"))
-      ,column(3,align="center",htmlOutput("text2", container = span))
-      ,column(3,align="center",textOutput("text3", container = span))
+      column(width=4,align="center",textOutput("text1", container = span),div(style = "height:110%; padding-bottom: 12px"))
+      #,column(width=3,align="center",htmlOutput("text2", container = span),div(style = "height:110%; padding-bottom: 12px"))
+      ,column(width=4,offset=1,align="center",textOutput("text3", container = span),div(style = "height:110%; padding-bottom: 12px"))
 
     ),
 
@@ -50,13 +51,8 @@ ui <- fluidPage(
     
     #Prompt
     #https://shiny.rstudio.com/articles/html-tags.html
-    ,column(3,align="center",
-             tags$div(class="h3",
-               HTML(paste(tags$span(style="font-size: 18px;
-                       font-style: bold; vertical-align: middle", "Which stock is "), tags$span(style="color:#009E73; font-size: 18px;
-                       font-style: bold; vertical-align: middle", "green?"), sep = ""))
-             ))
-  
+    ,column(width=3,align="center",style='padding:8px',htmlOutput("text2", container = span))
+
     ,column(3,align="center",
            h3(textOutput("c2_full")),
            actionButton("Action2", textOutput("c2"),width = '80%'))
@@ -64,8 +60,7 @@ ui <- fluidPage(
   
   #Text formatting blocks
   ,tags$head(tags$style("#text1{color: #009E73;
-                       font-size: 16px;
-                       font-style: bold;
+                       font-size: 18px; font-style: bold;
                        }"))
   
   ,tags$head(tags$style("#c1_full{font-size: 16px;
@@ -77,7 +72,7 @@ ui <- fluidPage(
                         }"))
   
   ,tags$head(tags$style("#text3{color: #009E73;
-                       font-size: 16px;
+                       font-size: 18px;
                        font-style: bold;
                        }"))
 
@@ -156,7 +151,7 @@ server <- function(input, output) {
   output$text1 <- renderText({ paste0("Current streak: ", i()) })
   #Message
   output$text2 <- renderText({
-    paste0('<span style=\"font-size: 16px; color:', textcolor(), 
+    paste0('<span style=\"font-size: 18px; color:', textcolor(), 
            '\">',answer(),'</span>')})
   #PR
   output$text3 <- renderText({ paste0("Personal Best: ", pr()) })
@@ -316,7 +311,8 @@ server <- function(input, output) {
     #Get rid of annoying modebar!
     p <- ggplotly(p, dynamicTicks = T, tooltip = c("text")) %>% 
       layout(title = "Plot") %>% 
-      config(displayModeBar = F)
+      config(displayModeBar = F) %>% 
+      layout(paper_bgcolor='rgb(254, 247, 234)')
 
     #Force correct colors
     #Had all kinds of issues on this

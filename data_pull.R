@@ -82,6 +82,9 @@ for(i in 1:length(symbols)){
 company.list<-read_csv(file = paste0(path,"companylist.csv"))
 head(company.list)
 
+#Fix Name
+company.list[company.list$Symbol=="ORLY","Name"]<-"OReilly Automotive, Inc."
+
 #Match names
 names(stock.all)[14]<-'Symbol'
 
