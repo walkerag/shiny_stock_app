@@ -138,8 +138,34 @@ big_changers<-unique(big_changers)
 
 symbols<-setdiff(symbols,'GOOGL')
 symbols<-setdiff(symbols,'LBRDK')
+symbols<-setdiff(symbols,'FOXA')
 symbols<-setdiff(symbols,big_changers)
 sort(symbols)
+
+company.list.filter<-company.list %>% filter(Symbol %in% symbols)
+company.list.filter$NameChars<-nchar(company.list.filter$Name)
+head(company.list.filter)
+
+#Needs to be 23 or under
+company.list.filter$NamePrepped<-gsub(" Incorporated","",company.list.filter$Name)
+company.list.filter$NamePrepped<-gsub(", Inc.","",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub(" Inc.","",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub(", Inc","",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub(" Corporation"," Corp.",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Cognizant Technology Solutions Corp.","Cognizant Technology",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Express Scripts Holding Company","Express Scripts",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("TD Ameritrade Holding Corp.","TD Ameritrade",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Twenty-First Century Fox","21st Century Fox",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Regeneron Pharmaceuticals","Regeneron Pharma.",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Automatic Data Processing","Automatic Data Process.",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Interactive Brokers Group","Interactive Brokers Grp",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("Walgreens Boots Alliance","Walgreens/Boots",company.list.filter$NamePrepped)
+company.list.filter$NamePrepped<-gsub("SBA Communications Corp.","SBA Communications",company.list.filter$NamePrepped)
+company.list.filter$NamePreppedChars<-nchar(company.list.filter$NamePrepped)
+company.list.filter %>% dplyr::select(Symbol,NamePrepped,NamePreppedChars) %>% arrange(desc(NamePreppedChars))
+
+#Replace name
+company.list.filter<-company.list.filter %>% dplyr::select(-Name,-NamePreppedChars,-NameChars) %>% dplyr::rename(Name=NamePrepped)
 
 colors<-c("#009E73","#f6ee8d")
 i<-1
@@ -166,9 +192,9 @@ while(i<1000){
     
     #Create lookups
     s1.lookup<-comb.stock %>% filter(Symbol==s1) %>% group_by(Symbol) %>% summarise(total=n(),max_value=max(Perc_Change)) %>% 
-      mutate(GroupColor=c[1]) %>% inner_join(company.list,by=c("Symbol"))
+      mutate(GroupColor=c[1]) %>% inner_join(company.list.filter,by=c("Symbol"))
     s2.lookup<-comb.stock %>% filter(Symbol==s2) %>% group_by(Symbol) %>% summarise(total=n(),max_value=max(Perc_Change)) %>% 
-      mutate(GroupColor=c[2]) %>% inner_join(company.list,by=c("Symbol"))
+      mutate(GroupColor=c[2]) %>% inner_join(company.list.filter,by=c("Symbol"))
     
     comb.lookup<-rbind(s1.lookup,s2.lookup)
     

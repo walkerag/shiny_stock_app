@@ -20,65 +20,65 @@ ui <- fluidPage(
   tags$head(
     tags$style(HTML('a[data-title="save and edit plot in cloud"]{display:none;}'))
   ),
-
+  
   # Formatted title
   column(9,align="center",titlePanel( HTML(paste(tags$span(style="font-size: 24px; font-style: bold; vertical-align: middle", "Guess the stock! Which is ")
-  ,tags$span(style="color:#009E73; font-size: 24px;font-style: bold; vertical-align: middle", "green?"), sep = ""))))
+                                                 ,tags$span(style="color:#009E73; font-size: 24px;font-style: bold; vertical-align: middle", "green?"), sep = ""))))
   
   # Vertical layout for simplicity 
   ,verticalLayout(
-
+    
     fluidRow(
-
+      
       #Current streak, message, and personal best text
       column(width=4,align="center",textOutput("text1", container = span),div(style = "height:110%; padding-bottom: 12px"))
       #,column(width=3,align="center",htmlOutput("text2", container = span),div(style = "height:110%; padding-bottom: 12px"))
       ,column(width=4,offset=1,align="center",textOutput("text3", container = span),div(style = "height:110%; padding-bottom: 12px"))
-
+      
     ),
-
-     # Plot panel
-     mainPanel(width=9,align="center"
-       ,plotlyOutput("distPlot")
-     )
-   
-  ,  fluidRow(
     
-    #Decision buttons
-    column(3,align="center",
-           h3(textOutput("c1_full")),
-           actionButton("Action1", textOutput("c1"),width = '80%'))
-    
-    #Prompt
-    #https://shiny.rstudio.com/articles/html-tags.html
-    ,column(width=3,align="center",style='padding:8px',htmlOutput("text2", container = span))
-
-    ,column(3,align="center",
-           h3(textOutput("c2_full")),
-           actionButton("Action2", textOutput("c2"),width = '80%'))
+    # Plot panel
+    mainPanel(width=9,align="center"
+              ,plotlyOutput("distPlot")
     )
+    
+    ,  fluidRow(
+      
+      #Decision buttons
+      column(9,align="center",style='padding-top:10px',actionButton("Action1", htmlOutput("b1", container = span),width = '90%'))
+      ,column(9,align="center",style='padding-top:10px',actionButton("Action2", htmlOutput("b2", container = span),width = '90%'))
+    )
+
+    ,  fluidRow(
+      
+      #Prompt
+      #https://shiny.rstudio.com/articles/html-tags.html
+      #,column(width=3,align="center",style='padding:8px',htmlOutput("text2", container = span))
+      column(width=9,align="center", style='padding-top:10px; padding-bottom:10px',htmlOutput("text2", container = span))
+      
+    )
+    
+    #Text formatting blocks
+    ,tags$head(tags$style("#text1{color: #009E73;
+                          font-size: 18px; font-style: bold;
+                          }"))
   
-  #Text formatting blocks
-  ,tags$head(tags$style("#text1{color: #009E73;
-                       font-size: 18px; font-style: bold;
-                       }"))
+    ,tags$head(tags$style("#c1_full{font-size: 16px;
+                          font-style: bold;
+                          }"))
   
-  ,tags$head(tags$style("#c1_full{font-size: 16px;
-                        font-style: bold;
-                        }"))
+    ,tags$head(tags$style("#c2_full{font-size: 16px;
+                          font-style: bold;
+                          }"))
   
-  ,tags$head(tags$style("#c2_full{font-size: 16px;
-                        font-style: bold;
-                        }"))
-  
-  ,tags$head(tags$style("#text3{color: #009E73;
-                       font-size: 18px;
-                       font-style: bold;
-                       }"))
+    ,tags$head(tags$style("#text3{color: #009E73;
+                          font-size: 18px;
+                          font-style: bold;
+                          }"))
 
   )
   
-)
+    )
 
 #Server code
 #Note that variables are reactive
@@ -127,34 +127,36 @@ server <- function(input, output) {
   #Max value: used to verify colors are correct in chart
   c1.max_value<-reactive({x<-lookupdata()[1,] %>% pull(max_value); return(x)})
   #Company name
-  output$c1_full<-reactive({x<-lookupdata()[1,] %>% pull(Name); return(x)})
+  c1_full<-reactive({x<-lookupdata()[1,] %>% pull(Name); return(x)})
   #Company color
   c1.color<-reactive({x<-lookupdata()[1,] %>% pull(GroupColor); return(x)})
   
   #Stock 2 (right side) variables
   c2.symbol<-reactive({x<-lookupdata()[2,] %>% pull(Symbol); return(x)})
   output$c2<-reactive({c2.symbol()})
-  output$c2_full<-reactive({x<-lookupdata()[2,] %>% pull(Name); return(x)})
+  c2_full<-reactive({x<-lookupdata()[2,] %>% pull(Name); return(x)})
   c2.color<-reactive({x<-lookupdata()[2,] %>% pull(GroupColor); return(x)})
   
   #Determine winner
   #This is the stock that has the green color assigned to it
   right_answer <- reactive({if(c1.color()=="#009E73"){1}else{2}})
-
+  
   #For debugging
   #output$text4 <- renderText({ paste0("Right answer: ", right_answer(),"  ",sample_num()) })
   
   #Initial prompt
   answer<-reactiveVal("Go ahead, make your pick...")
-    
+  
   #Streak
   output$text1 <- renderText({ paste0("Current streak: ", i()) })
   #Message
-  output$text2 <- renderText({
-    paste0('<span style=\"font-size: 18px; color:', textcolor(), 
-           '\">',answer(),'</span>')})
+  output$text2 <- renderText({paste0('<span style=\"font-size: 18px; color:', textcolor(), '\">',answer(),'</span>')})
   #PR
   output$text3 <- renderText({ paste0("Personal Best: ", pr()) })
+  
+  #Button HTML
+  output$b1 <- renderText({paste0('<span style=\"font-size: 18px;\">',c1.symbol(),': ',c1_full(),'</span>')})
+  output$b2 <- renderText({paste0('<span style=\"font-size: 18px;\">',c2.symbol(),': ',c2_full(),'</span>')})
   
   #LEFT SIDE BUTTON
   observeEvent(input$Action1, {
@@ -298,7 +300,7 @@ server <- function(input, output) {
     #Pick a new sample number
     sample_num(sample(1:n,size = 1))
     
-
+    
   })
   
   #MAKE STOCK PLOT
@@ -313,7 +315,7 @@ server <- function(input, output) {
       layout(title = "Plot") %>% 
       config(displayModeBar = F) %>% 
       layout(paper_bgcolor='rgb(254, 247, 234)')
-
+    
     #Force correct colors
     #Had all kinds of issues on this
     p$x$data[[1]]$line$color<-ifelse(max(p$x$data[[1]]$y)==c1.max_value(),c1.color(),c2.color())
@@ -325,34 +327,34 @@ server <- function(input, output) {
         title = paste0(c1.symbol()," vs. ",c2.symbol()),
         margin=list(t=65,b=15,l=50,r=10),
         xaxis = list(title=NULL,
-          rangeselector = list(
-            buttons = list(
-              list(
-                count = 3,
-                label = "3 mo",
-                step = "month",
-                stepmode = "backward"),
-              list(
-                count = 6,
-                label = "6 mo",
-                step = "month",
-                stepmode = "backward"),
-              list(
-                count = 1,
-                label = "1 yr",
-                step = "year",
-                stepmode = "backward"),
-              list(
-                count = 1,
-                label = "YTD",
-                step = "year",
-                stepmode = "todate"),
-              list(step = "all"))),
-          
-          rangeslider = list(type = "date")),
+                     rangeselector = list(
+                       buttons = list(
+                         list(
+                           count = 3,
+                           label = "3 mo",
+                           step = "month",
+                           stepmode = "backward"),
+                         list(
+                           count = 6,
+                           label = "6 mo",
+                           step = "month",
+                           stepmode = "backward"),
+                         list(
+                           count = 1,
+                           label = "1 yr",
+                           step = "year",
+                           stepmode = "backward"),
+                         list(
+                           count = 1,
+                           label = "YTD",
+                           step = "year",
+                           stepmode = "todate"),
+                         list(step = "all"))),
+                     
+                     rangeslider = list(type = "date")),
         
         yaxis = list(title = NULL,tickformat = "%"))
-
+    
   })
   
 }
